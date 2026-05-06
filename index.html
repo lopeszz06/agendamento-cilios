@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamento Estúdio de Cílios</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: #fff;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(135deg, #ffd6e7, #fff);
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    h1 {
+      color: #d63384;
+      font-size: 40px;
+    }
+
+    .btn {
+      background: #d63384;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 25px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    section {
+      padding: 40px 20px;
+      max-width: 900px;
+      margin: auto;
+      text-align: center;
+    }
+
+    .card {
+      background: #fff0f6;
+      padding: 15px;
+      margin: 10px;
+      border-radius: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #d63384;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+
+    #list {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .item {
+      background: #fce4ec;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Estúdio de Cílios</h1>
+  <p>Agendamento profissional 💅</p>
+  <a class="btn" href="#agendar">Agendar agora</a>
+</header>
+
+<section>
+  <h2>Serviços</h2>
+  <div class="card">Volume Brasileiro</div>
+  <div class="card">Fio a Fio</div>
+  <div class="card">Híbrido</div>
+</section>
+
+<section id="agendar">
+  <h2>Agendamento</h2>
+
+  <input id="name" placeholder="Nome">
+  <input id="date" type="date">
+  <input id="time" type="time">
+
+  <button onclick="add()">Agendar</button>
+
+  <div id="list"></div>
+</section>
+
+<script>
+let data = JSON.parse(localStorage.getItem("agenda")) || [];
+
+function add(){
+  const name = document.getElementById("name").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+
+  if(!name || !date || !time) return;
+
+  data.push({id:Date.now(), name, date, time});
+  localStorage.setItem("agenda", JSON.stringify(data));
+
+  render();
+}
+
+function render(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(i=>{
+    list.innerHTML += `
+      <div class="item">
+        <b>${i.name}</b><br>
+        ${i.date} - ${i.time}
+      </div>
+    `;
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
