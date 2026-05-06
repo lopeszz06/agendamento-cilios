@@ -2,13 +2,13 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Estúdio de Cílios</title>
+<title>Estúdio de Cílios Premium</title>
 
 <style>
 body{
 margin:0;
 font-family:Arial;
-background:#fff;
+background:#fafafa;
 }
 
 header{
@@ -17,16 +17,29 @@ text-align:center;
 padding:70px 20px;
 }
 
-h1{
+header h1{
 color:#d63384;
+margin:0;
 font-size:40px;
 }
 
-section{
-padding:30px;
-max-width:500px;
-margin:auto;
+.container{
+max-width:700px;
+margin:20px auto;
+background:#fff;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+
+h2{
+color:#d63384;
 text-align:center;
+}
+
+.servicos label{
+display:block;
+margin:8px 0;
 }
 
 input{
@@ -34,14 +47,14 @@ width:100%;
 padding:12px;
 margin:8px 0;
 border-radius:10px;
-border:1px solid #ccc;
+border:1px solid #ddd;
 }
 
 button{
 width:100%;
-padding:12px;
+padding:14px;
 background:#d63384;
-color:white;
+color:#fff;
 border:none;
 border-radius:10px;
 font-size:16px;
@@ -49,7 +62,21 @@ cursor:pointer;
 }
 
 button:hover{
-background:#c2186a;
+background:#b81f6a;
+}
+
+.agendamentos{
+margin-top:30px;
+padding-top:20px;
+border-top:1px solid #eee;
+}
+
+.card{
+background:#fff;
+border:1px solid #eee;
+padding:10px;
+margin:10px 0;
+border-radius:10px;
 }
 </style>
 </head>
@@ -61,7 +88,15 @@ background:#c2186a;
 <p>Agendamento profissional 💅</p>
 </header>
 
-<section>
+<div class="container">
+
+<h2>Serviços</h2>
+
+<div class="servicos">
+<label><input type="checkbox" value="Volume Brasileiro"> Volume Brasileiro - R$120</label>
+<label><input type="checkbox" value="Híbrido"> Híbrido - R$100</label>
+<label><input type="checkbox" value="Mega Volume"> Mega Volume - R$150</label>
+</div>
 
 <h2>Agendar horário</h2>
 
@@ -69,20 +104,25 @@ background:#c2186a;
 <input id="data" type="date">
 <input id="hora" type="time">
 
-<button onclick="agendar()">Agendar</button>
+<button onclick="agendar()">Confirmar agendamento</button>
 
-</section>
+<div class="agendamentos">
+<h2>Meus agendamentos</h2>
+<div id="lista"></div>
+</div>
+
+</div>
 
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6Nqzmul8cl_5uNCLxlQSNMRNJHzAz7Ks",
   authDomain: "cilios-premium.firebaseapp.com",
   projectId: "cilios-premium",
-  storageBucket: "cilios-premium.firebasestorage.app",
+  storageBucket: "cilios-premium.firebaseapp.com",
   messagingSenderId: "1037055186575",
   appId: "1:1037055186575:web:046429d9b765edbfc1c2fa"
 };
@@ -90,27 +130,78 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// FUNÇÃO DE AGENDAR
+// AGENDAR
 window.agendar = async function () {
 
   const nome = document.getElementById("nome").value;
   const data = document.getElementById("data").value;
   const hora = document.getElementById("hora").value;
 
+  const checkboxes = document.querySelectorAll(".servicos input");
+  let servicos = [];
+
+  checkboxes.forEach(c => {
+    if(c.checked){
+      servicos.push(c.value);
+    }
+  });
+
   if(!nome || !data || !hora){
-    alert("Preencha todos os campos!");
+    alert("Preencha tudo!");
+    return;
+  }
+
+  // BLOQUEIO SIMPLES (evita duplicado exato)
+  const snapshot = await getDocs(collection(db, "agendamentos"));
+
+  let conflito = false;
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if(d.data === data && d.hora === hora){
+      conflito = true;
+    }
+  });
+
+  if(conflito){
+    alert("Esse horário já está ocupado ❌");
     return;
   }
 
   await addDoc(collection(db, "agendamentos"), {
     nome,
     data,
-    hora
+    hora,
+    servicos
   });
 
-  alert("Agendamento realizado com sucesso 💅");
+  alert("Agendamento realizado 💅");
+
+  carregar();
 };
 
+// LISTAR AGENDAMENTOS
+async function carregar(){
+
+  const lista = document.getElementById("lista");
+  lista.innerHTML = "";
+
+  const snapshot = await getDocs(collection(db, "agendamentos"));
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+
+    lista.innerHTML += `
+      <div class="card">
+        <b>${d.nome}</b><br>
+        ${d.data} - ${d.hora}<br>
+        ${d.servicos ? d.servicos.join(", ") : ""}
+      </div>
+    `;
+  });
+}
+
+carregar();
 </script>
 
 </body>
